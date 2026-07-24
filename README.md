@@ -1,4 +1,4 @@
-# Zabbix Auto-Remediation
+# Supervision intelligente avec Zabbix : détection proactive et remédiation automatisée
 
 ## Présentation
 
