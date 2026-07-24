@@ -1,4 +1,4 @@
-# Zabbix Automation Toolkit
+# Supervision intelligente avec Zabbix : détection proactive et remédiation automatisée
 
 ## Présentation
 
