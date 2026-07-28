@@ -62,28 +62,135 @@ Tous les scripts Linux sont regroupés dans le dossier **linux/** tandis que les
 
 # Tickets réalisés
 
-## 1. Manual Action – Create Linux User
-Objectif
+# Manual Action – Create Linux User
 
-Créer un utilisateur Linux directement depuis l'interface Zabbix sans ouvrir de session SSH sur la machine cible.
+## Objectif
 
-Prérequis
-Zabbix Server et Zabbix Agent installés.
-L'utilisateur zabbix doit être autorisé à exécuter la commande useradd via sudo.
-Communication fonctionnelle entre le serveur et l'agent.
-Implémentation
-Configurer les permissions sudo permettant l'exécution de la commande useradd.
-Créer un Global Script dans Zabbix.
-Définir son type sur Manual Host Action.
-Activer la saisie utilisateur afin de renseigner le nom du nouvel utilisateur.
-Configurer une expression régulière afin de valider le format du nom d'utilisateur.
-Associer l'action aux hôtes Linux concernés puis tester son fonctionnement.
+Créer un utilisateur Linux directement depuis l'interface Zabbix à l'aide d'une **Manual Host Action**, sans ouvrir de session SSH sur la machine cible.
 
-Fichier concerné
-Cette fonctionnalité est entièrement implémentée dans Zabbix et ne nécessite aucun script externe.
+---
 
-Résultat
-L'administrateur peut créer un utilisateur Linux directement depuis l'interface Zabbix.
+## Procédure d'implémentation
+
+### 1. Autoriser la création d'utilisateurs via sudo
+
+Modifier le fichier sudoers :
+
+```bash
+sudo visudo
+```
+
+Ajouter la règle suivante :
+
+```text
+zabbix ALL=(ALL) NOPASSWD:/usr/sbin/useradd
+```
+
+Vérifier que la commande peut être exécutée par l'utilisateur `zabbix` :
+
+```bash
+sudo -u zabbix sudo /usr/sbin/useradd testuser
+```
+
+Supprimer ensuite l'utilisateur de test :
+
+```bash
+sudo userdel testuser
+```
+
+---
+
+### 2. Créer le Global Script dans Zabbix
+
+Depuis l'interface Zabbix :
+
+```
+Alerts
+→ Scripts
+→ Create script
+```
+
+Configurer les paramètres suivants :
+
+| Paramètre | Valeur |
+|-----------|--------|
+| Name | Create Linux User |
+| Scope | Manual host action |
+| Type | Script |
+| Execute on | Zabbix agent |
+| Enable user input | Yes |
+| Input type | String |
+
+Commande à exécuter :
+
+```bash
+sudo /usr/sbin/useradd "{MANUALINPUT}"
+```
+
+Configurer une expression régulière afin de valider le nom de l'utilisateur :
+
+```text
+^[a-z_][a-z0-9_-]{2,31}$
+```
+
+Ajouter un message de confirmation avant l'exécution :
+
+```text
+Create Linux user "{MANUALINPUT}" ?
+```
+
+---
+
+### 3. Tester le fonctionnement
+
+Depuis l'interface Zabbix :
+
+```
+Monitoring
+→ Hosts
+→ <Linux Host>
+→ Scripts
+→ Create Linux User
+```
+
+Saisir un nom d'utilisateur valide puis confirmer l'exécution.
+
+---
+
+### 4. Vérifier la création de l'utilisateur
+
+Sur la machine Linux :
+
+```bash
+id <username>
+```
+
+ou
+
+```bash
+cat /etc/passwd | grep <username>
+```
+
+L'utilisateur doit apparaître dans la liste des comptes du système.
+
+---
+
+## Ressources
+
+Cette fonctionnalité ne nécessite **aucun script externe**.
+
+Elle repose sur les éléments suivants :
+
+- Global Script Zabbix
+- Zabbix Agent
+- Commande `useradd`
+- Configuration `sudo`
+
+---
+
+## Résultat
+
+L'administrateur peut créer un utilisateur Linux directement depuis l'interface Zabbix. La commande est exécutée par le Zabbix Agent sur l'hôte sélectionné, sans nécessiter de connexion SSH.
 
 
 # Automatic Increase of /var
