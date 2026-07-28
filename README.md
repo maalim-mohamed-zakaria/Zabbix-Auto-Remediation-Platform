@@ -401,29 +401,163 @@ linux/increase_var.sh
 
 Lorsque l'espace disponible sur la partition `/var` devient inférieur au seuil défini, Zabbix exécute automatiquement le script `increase_var.sh`. Celui-ci étend le volume logique de **2 Mo**, redimensionne le système de fichiers, puis le Trigger revient automatiquement à l'état **RESOLVED** sans intervention de l'administrateur.
 
-## 3. Automatic Audit Cleanup
+## C-# Automatic Audit Cleanup
 
-Objectif
+## Objectif
 
-Nettoyer automatiquement les fichiers de test présents dans /var/log/audit afin de libérer de l'espace disque.
+Supprimer automatiquement tous les fichiers présents dans le répertoire `/var/log/audit`, à l'exception du fichier `audit.log`, lorsqu'un Trigger Zabbix est déclenché afin de libérer de l'espace disque.
 
-Prérequis
-Zabbix Agent installé.
-Permissions sudo permettant la suppression des fichiers.
-Trigger détectant un dépassement du seuil défini.
-Implémentation
-Copier le script clean_audit.sh sur la machine Linux.
-Lui attribuer les droits d'exécution.
-Configurer les permissions sudo.
-Créer un Trigger surveillant la taille du répertoire d'audit.
-Créer une Action Zabbix exécutant automatiquement le script.
+---
 
-Fichier concerné
+## Procédure d'implémentation
+
+### 1. Déployer le script
+
+Copier le script sur la machine Linux :
+
+```bash
+sudo cp clean_audit.sh /opt/zabbix/scripts/
+```
+
+Attribuer les permissions d'exécution :
+
+```bash
+sudo chmod +x /opt/zabbix/scripts/clean_audit.sh
+```
+
+---
+
+### 2. Configurer les permissions sudo
+
+Modifier le fichier `sudoers` :
+
+```bash
+sudo visudo
+```
+
+Ajouter les autorisations suivantes :
+
+```text
+zabbix ALL=(ALL) NOPASSWD: /usr/bin/find
+zabbix ALL=(ALL) NOPASSWD: /usr/bin/rm
+zabbix ALL=(ALL) NOPASSWD: /usr/bin/logger
+```
+
+Vérifier les chemins des commandes :
+
+```bash
+which find
+which rm
+which logger
+```
+
+---
+
+### 3. Tester le script manuellement
+
+Créer quelques fichiers de test :
+
+```bash
+sudo touch /var/log/audit/test.log
+sudo touch /var/log/audit/debug.log
+sudo touch /var/log/audit/old.log
+```
+
+Vérifier le contenu du répertoire :
+
+```bash
+ls -l /var/log/audit
+```
+
+Exécuter le script :
+
+```bash
+sudo /opt/zabbix/scripts/clean_audit.sh
+```
+
+Vérifier le résultat :
+
+```bash
+ls -l /var/log/audit
+```
+
+Seul le fichier **audit.log** doit être conservé.
+
+---
+
+### 4. Configurer le Trigger
+
+Créer un Trigger surveillant l'espace disponible sur la partition contenant le répertoire `/var/log/audit`.
+
+Lorsque le seuil défini est atteint, le Trigger passe à l'état **PROBLEM**.
+
+---
+
+### 5. Configurer l'Action
+
+Depuis l'interface Zabbix :
+
+```
+Alerts
+→ Actions
+→ Trigger actions
+→ Create action
+```
+
+Créer une opération de type **Run script** exécutant :
+
+```bash
+sudo /opt/zabbix/scripts/clean_audit.sh
+```
+
+Associer cette Action au Trigger créé précédemment.
+
+---
+
+### 6. Validation
+
+Déclencher le Trigger en simulant un manque d'espace disque ou en abaissant temporairement son seuil.
+
+Lorsque le Trigger passe à l'état **PROBLEM** :
+
+- le script est exécuté automatiquement ;
+- tous les fichiers du répertoire `/var/log/audit`, à l'exception de `audit.log`, sont supprimés ;
+- un message est enregistré dans les journaux système.
+
+Vérifier le journal :
+
+```bash
+journalctl | grep "Zabbix cleaned audit logs automatically"
+```
+
+---
+
+## Ressources
+
+**Script**
+
+```
 linux/clean_audit.sh
+```
 
-Résultat
-Les fichiers de test sont supprimés automatiquement et un journal d'exécution est généré.
+**Commandes utilisées**
 
+- `find`
+- `rm`
+- `logger`
+- `journalctl`
+
+**Fonctionnalités Zabbix**
+
+- Trigger
+- Action
+- Zabbix Agent
+
+---
+
+## Résultat
+
+Lorsque le seuil défini est dépassé, Zabbix exécute automatiquement le script `clean_audit.sh`. Celui-ci supprime tous les fichiers présents dans `/var/log/audit`, à l'exception de `audit.log`, puis enregistre l'opération dans les journaux système. Après le nettoyage, le Trigger revient automatiquement à l'état **RESOLVED**.
 
 ## 4. Audit Directory Monitoring
 Objectif
