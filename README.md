@@ -1,6 +1,5 @@
 # Supervision intelligente avec Zabbix : détection proactive et remédiation automatisée
 
-# Automated Administration Scripts using Zabbix
 
 ## Présentation
 
