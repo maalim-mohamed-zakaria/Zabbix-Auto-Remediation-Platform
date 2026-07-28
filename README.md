@@ -52,7 +52,7 @@ Le projet est composé des machines suivantes :
 | Zabbix Server | Supervision, automatisation, serveur NTP et référentiel central des scripts |
 | Rocky Linux CIS | Hôte Linux supervisé |
 | Rocky Linux Proxy | Proxy Zabbix pour la supervision distante |
-| Windows Server 2016 | Hôte Windows supervisé (IIS) |
+| Windows Server 2016 | Hôte Windows supervisé |
 
 Les scripts Linux sont centralisés sur le serveur Zabbix dans le répertoire :
 
