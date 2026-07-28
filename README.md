@@ -1,64 +1,128 @@
 # Supervision intelligente avec Zabbix : détection proactive et remédiation automatisée
 
+# Automated Administration Scripts using Zabbix
+
 ## Présentation
 
-Ce dépôt regroupe l'ensemble des scripts, actions et mécanismes d'automatisation développés durant mon stage technique à la Société Nationale des Autoroutes du Maroc (ADM).
+Ce dépôt regroupe l'ensemble des scripts, configurations et procédures d'implémentation développés dans le cadre d'un projet de supervision, d'automatisation et de remédiation automatique basé sur **Zabbix 7.0 LTS**.
 
-L'objectif du projet est d'améliorer l'administration des systèmes supervisés par Zabbix en développant des solutions de remédiation automatique (Self-Healing), des actions d'administration manuelles, des scripts de diagnostic, ainsi que des mécanismes de synchronisation et de supervision.
+L'objectif est de fournir une documentation technique permettant à un administrateur système de reproduire les différentes automatisations mises en œuvre sur une nouvelle infrastructure. Chaque ticket décrit les étapes d'implémentation, les commandes utilisées, les configurations Zabbix nécessaires ainsi que les scripts associés.
 
-L'ensemble des développements a été réalisé sur une infrastructure virtuelle composée d'un serveur Zabbix, d'un serveur Windows, d'une machine Rocky Linux CIS Level 2 et d'un proxy Zabbix.
+Les solutions implémentées couvrent notamment :
+
+- Création manuelle d'utilisateurs Linux depuis l'interface Zabbix ;
+- Extension automatique du volume logique `/var` ;
+- Nettoyage automatique du répertoire `/var/log/audit` ;
+- Surveillance du répertoire d'audit ;
+- Diagnostic automatique du serveur Apache ;
+- Redémarrage automatique du serveur Apache ;
+- Déploiement et supervision du serveur IIS sous Windows ;
+- Remédiation automatique des services Windows ;
+- Déploiement d'un Zabbix Proxy ;
+- Mise en place d'une architecture NTP ;
+- Synchronisation centralisée des scripts Linux.
+
+---
+
+# Environnement de test
+
+Les automatisations ont été développées et validées sur l'environnement suivant :
+
+| Composant | Version |
+|------------|---------|
+| Zabbix Server | 7.0 LTS |
+| Zabbix Proxy | 7.0 LTS |
+| Zabbix Agent | 7.0 LTS |
+| Rocky Linux | 8.10 |
+| Rocky Linux CIS | 8.10 (CIS Level 2) |
+| Windows Server | 2016 |
+| PostgreSQL | 16 |
+| Apache HTTP Server | 2.4 |
+| IIS | Internet Information Services |
+| Chrony | NTP |
+| rsync | Synchronisation des scripts |
 
 ---
 
 # Architecture
 
-L'infrastructure est composée des éléments suivants :
+Le projet est composé des machines suivantes :
 
-- Zabbix Server 7.0 LTS (Rocky Linux 8.10)
-- Rocky Linux 8.10 CIS Level 2
-- Windows Server 2016
-- Zabbix Proxy
-- PostgreSQL
-- Apache HTTP Server
-- IIS
-- Chrony
-- rsync
-- SSH
-- cron
+| Machine | Rôle |
+|----------|------|
+| Zabbix Server | Supervision, automatisation, serveur NTP et référentiel central des scripts |
+| Rocky Linux CIS | Hôte Linux supervisé |
+| Rocky Linux Proxy | Proxy Zabbix pour la supervision distante |
+| Windows Server 2016 | Hôte Windows supervisé (IIS) |
 
-Le serveur Zabbix assure plusieurs rôles :
+Les scripts Linux sont centralisés sur le serveur Zabbix dans le répertoire :
 
-- Serveur de supervision
-- Serveur Web Apache
-- Base de données PostgreSQL
-- Serveur NTP
-- Référentiel central des scripts Linux
+```bash
+/opt/zabbix/scripts
+```
+---
+
+# Prérequis
+
+Avant de mettre en œuvre les automatisations décrites dans ce dépôt, les éléments suivants doivent être opérationnels :
+
+- Zabbix Server installé et configuré ;
+- Zabbix Agent installé sur les machines supervisées ;
+- Zabbix Proxy installé (si utilisé) ;
+- Les hôtes doivent être enregistrés dans Zabbix ;
+- Les Templates Zabbix appropriés doivent être associés aux hôtes ;
+- Les scripts Linux doivent être présents dans le répertoire :
+
+```bash
+/opt/zabbix/scripts
+```
+
+- Les scripts doivent disposer des droits d'exécution :
+
+```bash
+chmod +x /opt/zabbix/scripts/*.sh
+```
+
+- Les permissions `sudo` nécessaires doivent être configurées pour l'utilisateur `zabbix`.
+- Les Actions Zabbix doivent être autorisées à exécuter des scripts sur les hôtes concernés.
+- Pour les scripts Windows, le paramètre suivant doit être activé dans le fichier `zabbix_agentd.conf` :
+
+```text
+AllowKey=system.run[*]
+```
+
+Puis redémarrer l'agent :
+
+```powershell
+Restart-Service Zabbix Agent
+```
 
 ---
 
-# Organisation du dépôt
+# Principe de fonctionnement
+
+Toutes les automatisations présentées dans ce dépôt reposent sur le même principe de fonctionnement :
 
 ```
-zabbix-auto-remediation/
-│
-├── linux/
-│   ├── increase_var.sh
-│   ├── clean_audit.sh
-│   ├── audit_size.sh
-│   ├── apache_restart.sh
-│   ├── apache_diagnosis.sh
-│   └── sync_scripts.sh
-│
-├── windows/
-│   └── restart_service.bat
-│
-├── README.md
-└── LICENSE
+Détection (Item)
+        │
+        ▼
+Trigger Zabbix
+        │
+        ▼
+Action Zabbix
+        │
+        ▼
+Exécution d'un script ou d'une commande
+        │
+        ▼
+Remédiation automatique
+        │
+        ▼
+Résolution du Trigger
 ```
 
-Tous les scripts Linux sont regroupés dans le dossier **linux/** tandis que les scripts Windows sont placés dans **windows/**.
-
----
+Les sections suivantes décrivent en détail la procédure d'implémentation de chaque ticket, les commandes à exécuter, les configurations Zabbix à réaliser ainsi que les scripts utilisés.
 
 # Tickets réalisés
 
