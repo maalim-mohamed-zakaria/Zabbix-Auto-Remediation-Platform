@@ -227,10 +227,17 @@ Modifier le fichier sudoers :
 visudo
 ```
 
-Ajouter les autorisations nécessaires pour les commandes LVM utilisées par le script.
+jouter les permissions nécessaires :
+
+```text
+zabbix ALL=(ALL) NOPASSWD:/usr/sbin/lvextend
+zabbix ALL=(ALL) NOPASSWD:/usr/sbin/resize2fs
+zabbix ALL=(ALL) NOPASSWD:/usr/sbin/xfs_growfs
+```
+
+> Adapter la commande de redimensionnement (`resize2fs` ou `xfs_growfs`) selon le système de fichiers utilisé.
 
 ---
-
 ### 3. Tester le script
 
 ```bash
