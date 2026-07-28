@@ -125,7 +125,7 @@ Les sections suivantes décrivent en détail la procédure d'implémentation de 
 
 # Tickets réalisés
 
-# Manual Action - Create Linux User
+# A-Manual Action - Create Linux User
 
 ## Objectif
 
@@ -259,82 +259,118 @@ L'utilisateur doit apparaître dans la liste des comptes du système.
 L'administrateur peut créer un utilisateur Linux directement depuis l'interface Zabbix. Le nom de l'utilisateur est saisi au moment de l'exécution de l'action, puis transmis à la commande `useradd` via le Zabbix Agent, ce qui permet une création rapide sans connexion SSH.
 
 
-# Automatic Increase of /var
+# B-Automatic Increase of /var
 
 ## Objectif
 
-Étendre automatiquement le volume logique `/var` de 2 Mo lorsqu'un faible espace disque est détecté.
+Étendre automatiquement le volume logique `/var` de **2 Mo** lorsqu'un espace disque insuffisant est détecté par Zabbix.
 
 ---
 
-## Étapes de mise en œuvre
+## Procédure d'implémentation
 
 ### 1. Déployer le script
 
-Copier le script :
+Copier le script sur la machine Linux :
 
 ```bash
-cp increase_var.sh /opt/scripts/
+sudo cp increase_var.sh /opt/zabbix/scripts/
 ```
 
-Attribuer les permissions :
+Attribuer les permissions d'exécution :
 
 ```bash
-chmod +x /opt/scripts/increase_var.sh
+sudo chmod +x /opt/zabbix/scripts/increase_var.sh
 ```
 
 ---
 
 ### 2. Configurer les permissions sudo
 
-Modifier le fichier sudoers :
+Modifier le fichier `sudoers` :
 
 ```bash
-visudo
+sudo visudo
 ```
 
-jouter les permissions nécessaires :
+Ajouter les autorisations nécessaires à l'utilisateur `zabbix` :
 
 ```text
-zabbix ALL=(ALL) NOPASSWD:/usr/sbin/lvextend
-zabbix ALL=(ALL) NOPASSWD:/usr/sbin/resize2fs
-zabbix ALL=(ALL) NOPASSWD:/usr/sbin/xfs_growfs
+zabbix ALL=(ALL) NOPASSWD: /usr/sbin/lvextend
+zabbix ALL=(ALL) NOPASSWD: /usr/sbin/xfs_growfs
 ```
 
-> Adapter la commande de redimensionnement (`resize2fs` ou `xfs_growfs`) selon le système de fichiers utilisé.
+> Si le système de fichiers est **ext4**, remplacer `xfs_growfs` par `resize2fs`.
 
 ---
-### 3. Tester le script
+
+### 3. Tester le script manuellement
+
+Exécuter le script :
 
 ```bash
-sudo /opt/scripts/increase_var.sh
+sudo /opt/zabbix/scripts/increase_var.sh
 ```
 
----
-
-### 4. Configurer Zabbix
-
-Créer un Trigger surveillant l'espace libre de `/var`.
-
-Créer ensuite une Action exécutant automatiquement :
+Vérifier que le volume logique a été étendu :
 
 ```bash
-sudo /opt/scripts/increase_var.sh
+sudo lvs
 ```
 
-lorsque le Trigger passe à l'état **PROBLEM**.
-
----
-
-### 5. Validation
-
-Vérifier la nouvelle taille :
+Vérifier la nouvelle taille du système de fichiers :
 
 ```bash
 df -h /var
 ```
 
-Consulter l'historique des Actions dans Zabbix afin de confirmer la bonne exécution du script.
+---
+
+### 4. Configurer le Trigger
+
+Depuis l'interface Zabbix, créer un Trigger surveillant l'espace disponible sur `/var`.
+
+Exemple d'expression :
+
+```text
+last(/Rocky-cis2/vfs.fs.size[/var,pfree])<15
+```
+
+Le Trigger passe à l'état **PROBLEM** lorsque l'espace libre devient inférieur à **15 %**.
+
+---
+
+### 5. Configurer l'Action
+
+Depuis l'interface Zabbix :
+
+```
+Alerts
+→ Actions
+→ Trigger actions
+→ Create action
+```
+
+Configurer une opération de type **Run script** exécutant :
+
+```bash
+sudo /opt/zabbix/scripts/increase_var.sh
+```
+
+Associer cette Action au Trigger créé précédemment.
+
+---
+
+### 6. Validation
+
+Remplir temporairement la partition `/var` ou diminuer le seuil du Trigger afin de provoquer son déclenchement.
+
+Lorsque le Trigger passe à l'état **PROBLEM** :
+
+- le script est exécuté automatiquement ;
+- le volume logique `/var` est étendu de 2 Mo ;
+- le système de fichiers est redimensionné ;
+- le Trigger revient automatiquement à l'état **RESOLVED**.
 
 ---
 
@@ -346,12 +382,24 @@ Consulter l'historique des Actions dans Zabbix afin de confirmer la bonne exécu
 linux/increase_var.sh
 ```
 
+**Commandes utilisées**
+
+- `lvextend`
+- `xfs_growfs` (ou `resize2fs`)
+- `df`
+- `lvs`
+
+**Fonctionnalités Zabbix**
+
+- Trigger
+- Action
+- Zabbix Agent
+
 ---
 
 ## Résultat
 
-Le volume logique `/var` est automatiquement agrandi lorsque le seuil critique est atteint.
-
+Lorsque l'espace disponible sur la partition `/var` devient inférieur au seuil défini, Zabbix exécute automatiquement le script `increase_var.sh`. Celui-ci étend le volume logique de **2 Mo**, redimensionne le système de fichiers, puis le Trigger revient automatiquement à l'état **RESOLVED** sans intervention de l'administrateur.
 
 ## 3. Automatic Audit Cleanup
 
