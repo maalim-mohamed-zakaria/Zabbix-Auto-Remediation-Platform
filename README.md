@@ -86,30 +86,91 @@ Résultat
 L'administrateur peut créer un utilisateur Linux directement depuis l'interface Zabbix.
 
 
-## 2. Automatic Increase of /var
+# Automatic Increase of /var
 
-Objectif
+## Objectif
 
-Étendre automatiquement le volume logique /var lorsqu'un manque d'espace est détecté.
+Étendre automatiquement le volume logique `/var` de 2 Mo lorsqu'un faible espace disque est détecté.
 
-Prérequis
-Partition /var gérée par LVM.
-Zabbix Agent installé.
-Permissions sudo autorisant les commandes LVM.
-Trigger détectant un faible espace disque.
-Implémentation
-Déployer le script increase_var.sh sur le serveur Linux.
-Lui attribuer les permissions d'exécution.
-Configurer les autorisations sudo nécessaires.
-Créer un Trigger détectant un faible espace disponible.
-Créer une Action Zabbix exécutant automatiquement le script.
-Vérifier le fonctionnement en simulant un manque d'espace.
+---
 
-Fichier concerné
+## Étapes de mise en œuvre
+
+### 1. Déployer le script
+
+Copier le script :
+
+```bash
+cp increase_var.sh /opt/scripts/
+```
+
+Attribuer les permissions :
+
+```bash
+chmod +x /opt/scripts/increase_var.sh
+```
+
+---
+
+### 2. Configurer les permissions sudo
+
+Modifier le fichier sudoers :
+
+```bash
+visudo
+```
+
+Ajouter les autorisations nécessaires pour les commandes LVM utilisées par le script.
+
+---
+
+### 3. Tester le script
+
+```bash
+sudo /opt/scripts/increase_var.sh
+```
+
+---
+
+### 4. Configurer Zabbix
+
+Créer un Trigger surveillant l'espace libre de `/var`.
+
+Créer ensuite une Action exécutant automatiquement :
+
+```bash
+sudo /opt/scripts/increase_var.sh
+```
+
+lorsque le Trigger passe à l'état **PROBLEM**.
+
+---
+
+### 5. Validation
+
+Vérifier la nouvelle taille :
+
+```bash
+df -h /var
+```
+
+Consulter l'historique des Actions dans Zabbix afin de confirmer la bonne exécution du script.
+
+---
+
+## Ressources
+
+**Script**
+
+```
 linux/increase_var.sh
+```
 
-Résultat
-Lorsque le seuil critique est atteint, le volume logique est automatiquement agrandi sans intervention humaine.
+---
+
+## Résultat
+
+Le volume logique `/var` est automatiquement agrandi lorsque le seuil critique est atteint.
 
 
 ## 3. Automatic Audit Cleanup
