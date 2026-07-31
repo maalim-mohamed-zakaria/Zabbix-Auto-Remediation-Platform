@@ -79,7 +79,8 @@ Avant de mettre en œuvre les automatisations décrites dans ce dépôt, les él
 - Les scripts doivent disposer des droits d'exécution :
 
 ```bash
-chmod +x /opt/zabbix/scripts/*.sh
+sudo chown root:zabbix /opt/zabbix/scripts/script.sh
+sudo chmod 750 /opt/zabbix/scripts/script.sh
 ```
 
 - Les permissions `sudo` nécessaires doivent être configurées pour l'utilisateur `zabbix`.
@@ -123,7 +124,7 @@ Résolution du Trigger
 
 Les sections suivantes décrivent en détail la procédure d'implémentation de chaque ticket, les commandes à exécuter, les configurations Zabbix à réaliser ainsi que les scripts utilisés.
 
-# Tickets réalisés
+# Automatisations réalisées
 
 # A-Manual Action - Create Linux User
 
@@ -277,12 +278,6 @@ Copier le script sur la machine Linux :
 sudo cp increase_var.sh /opt/zabbix/scripts/
 ```
 
-Attribuer les permissions d'exécution :
-
-```bash
-sudo chmod +x /opt/zabbix/scripts/increase_var.sh
-```
-
 ---
 
 ### 2. Configurer les permissions sudo
@@ -401,7 +396,7 @@ linux/increase_var.sh
 
 Lorsque l'espace disponible sur la partition `/var` devient inférieur au seuil défini, Zabbix exécute automatiquement le script `increase_var.sh`. Celui-ci étend le volume logique de **2 Mo**, redimensionne le système de fichiers, puis le Trigger revient automatiquement à l'état **RESOLVED** sans intervention de l'administrateur.
 
-## C-# Automatic Audit Cleanup
+## C- Automatic Audit Cleanup
 
 ## Objectif
 
@@ -417,12 +412,6 @@ Copier le script sur la machine Linux :
 
 ```bash
 sudo cp clean_audit.sh /opt/zabbix/scripts/
-```
-
-Attribuer les permissions d'exécution :
-
-```bash
-sudo chmod +x /opt/zabbix/scripts/clean_audit.sh
 ```
 
 ---
@@ -555,224 +544,741 @@ linux/clean_audit.sh
 
 ---
 
-## Résultat
+## D. # Apache Auto Restart
 
-Lorsque le seuil défini est dépassé, Zabbix exécute automatiquement le script `clean_audit.sh`. Celui-ci supprime tous les fichiers présents dans `/var/log/audit`, à l'exception de `audit.log`, puis enregistre l'opération dans les journaux système. Après le nettoyage, le Trigger revient automatiquement à l'état **RESOLVED**.
+## Objectif
 
-## 4. Audit Directory Monitoring
-Objectif
-
-Surveiller la taille du répertoire /var/log/audit à l'aide d'un UserParameter personnalisé.
-
-Prérequis
-Zabbix Agent installé.
-Autorisation sudo si nécessaire.
-Configuration des UserParameters.
-Implémentation
-Déployer le script audit_size.sh.
-Ajouter un UserParameter dans la configuration du Zabbix Agent.
-Redémarrer le service Zabbix Agent.
-Créer un Item utilisant la clé personnalisée.
-Vérifier que la valeur remonte correctement dans Zabbix.
-Fichier concerné
-linux/audit_size.sh
-Résultat
-
-La taille du répertoire d'audit est disponible dans Zabbix et peut être utilisée par des Triggers.
-
-## 5. Apache Auto Restart
-Objectif
-
-Redémarrer automatiquement Apache lorsqu'il est détecté comme arrêté.
-
-Prérequis
-Apache installé.
-Zabbix Agent installé.
-Permissions sudo permettant le redémarrage du service.
-Trigger surveillant l'état du service.
-Implémentation
-Déployer le script apache_restart.sh.
-Lui attribuer les droits d'exécution.
-Configurer les permissions sudo.
-Créer un Trigger détectant l'arrêt du service.
-Configurer une Action Zabbix exécutant automatiquement le script.
-Tester le mécanisme en arrêtant Apache.
-Fichier concerné
-linux/apache_restart.sh
-Résultat
-
-Le service Apache est automatiquement redémarré et le Trigger revient à l'état RESOLVED.
-
-
-## 6. Apache Automatic Diagnosis
-
-6. Apache Automatic Diagnosis
-Objectif
-
-Générer automatiquement un rapport de diagnostic lorsqu'un incident Apache est détecté.
-
-Prérequis
-Apache installé.
-Accès aux journaux système.
-Permissions permettant la lecture des fichiers de logs.
-Implémentation
-Déployer le script apache_diagnosis.sh.
-Configurer les permissions d'exécution.
-Définir un emplacement pour le fichier de diagnostic.
-Associer le script à une Action Zabbix si nécessaire.
-Vérifier que le rapport est correctement généré.
-
-Fichier concerné
-linux/apache_diagnosis.sh
-
-Résultat
-Un rapport contenant les principales informations de diagnostic est automatiquement généré afin de faciliter l'analyse de l'incident.
-
-
-## 7. IIS Deployment
-
-Objectif
-
-Déployer le serveur Web IIS sur Windows Server afin de disposer d'un service supervisable.
-
-Prérequis
-Windows Server 2016.
-Accès administrateur.
-Pare-feu Windows configuré.
-Implémentation
-Installer le rôle Internet Information Services (IIS).
-Autoriser le trafic HTTP dans le pare-feu Windows.
-Vérifier le fonctionnement via un navigateur.
-Tester l'accès depuis les autres machines du réseau.
-
-Fichier concerné
-Aucun script n'est nécessaire.
-
-Résultat
-Le serveur IIS est accessible et prêt à être supervisé.
-
-
-
-## 8. Windows Service Monitoring
-
-Objectif
-
-Superviser automatiquement les services Windows grâce aux mécanismes de découverte de Zabbix.
-
-Prérequis
-Zabbix Agent installé sur Windows.
-Template Windows associé à l'hôte.
-Implémentation
-Associer le template Windows à l'hôte.
-Activer la règle Windows Services Discovery.
-Attendre la découverte automatique des services.
-Vérifier la création automatique des Items et des Triggers.
-
-Fichier concerné
-Aucun script n'est nécessaire.
-
-Résultat
-Les services Windows sont découverts et supervisés automatiquement.
-
-
-## 9. Windows Automatic Service Restart
-
-Objectif
-
-Redémarrer automatiquement un service Windows lorsqu'il est arrêté.
-
-Prérequis
-Zabbix Agent installé.
-Autorisation system.run.
-Action automatique configurée.
-Implémentation
-Déployer le script restart_service.bat.
-Autoriser l'exécution de commandes via system.run.
-Créer un Trigger détectant l'arrêt du service.
-Configurer une Action Zabbix exécutant le script.
-Vérifier le fonctionnement en arrêtant le service.
-
-Fichier concerné
-windows/restart_service.bat
-
-Résultat
-Le service Windows est automatiquement redémarré dès qu'il est détecté comme arrêté.
+Redémarrer automatiquement le serveur Apache lorsqu'un arrêt du service `httpd` est détecté par Zabbix.
 
 ---
 
-## 10. Zabbix Proxy Deployment
+## Procédure d'implémentation
 
-Objectif
+### 1. Déployer le script
 
-Déployer un proxy Zabbix afin de superviser un segment réseau distant.
+Copier le script sur la machine Linux :
 
-Prérequis
-Rocky Linux.
-Zabbix Proxy.
-SQLite.
-Connectivité avec le serveur Zabbix.
-Implémentation
-Installer Zabbix Proxy.
-Initialiser la base SQLite.
-Configurer le fichier zabbix_proxy.conf.
-Démarrer le service.
-Déclarer le proxy dans Zabbix.
-Associer les hôtes au proxy.
+```bash
+sudo cp apache_restart.sh /opt/zabbix/scripts/
+```
 
-Fichier concerné
-Aucun script n'est nécessaire.
+---
 
-Résultat
-Les hôtes associés sont supervisés via le proxy.
+### 2. Configurer les permissions sudo
 
-## 11. Centralized Script Synchronization
+Modifier le fichier `sudoers` :
 
-Objectif
+```bash
+sudo visudo
+```
 
-Distribuer automatiquement les scripts Linux depuis un référentiel central vers les autres serveurs.
+Ajouter la règle suivante :
 
-Prérequis
-SSH par clés.
-rsync.
-cron.
-Répertoire partagé des scripts.
-Implémentation
-Déployer le script sync_scripts.sh.
-Configurer l'authentification SSH par clés.
-Installer rsync.
-Définir les machines destinataires.
-Planifier l'exécution automatique avec cron.
-Vérifier que toute modification est propagée automatiquement.
+```text
+zabbix ALL=(ALL) NOPASSWD: /bin/systemctl restart httpd
+```
 
-Fichier concerné
-linux/sync_scripts.sh
+Vérifier le chemin de la commande :
 
-Résultat
-Tous les serveurs Linux disposent automatiquement de la même version des scripts.
+```bash
+which systemctl
+```
+
+---
+
+### 3. Tester le script manuellement
+
+Arrêter le service Apache :
+
+```bash
+sudo systemctl stop httpd
+```
+
+Exécuter le script :
+
+```bash
+sudo /opt/zabbix/scripts/apache_restart.sh
+```
+
+Vérifier que le service est redémarré :
+
+```bash
+systemctl status httpd
+```
+
+Le service doit être dans l'état :
+
+```text
+active (running)
+```
+
+---
+
+### 4. Configurer le Trigger
+
+Créer un Trigger détectant l'arrêt du service Apache.
+
+Exemple :
+
+```
+Apache service is not running
+```
+
+Lorsque le service est arrêté, le Trigger passe à l'état **PROBLEM**.
+
+---
+
+### 5. Configurer l'Action
+
+Depuis l'interface Zabbix :
+
+```
+Alerts
+→ Actions
+→ Trigger actions
+→ Create action
+```
+
+Créer une opération de type **Run script** exécutant :
+
+```bash
+sudo /opt/zabbix/scripts/apache_restart.sh
+```
+
+Associer cette Action au Trigger correspondant.
+
+---
+
+### 6. Validation
+
+Arrêter le service Apache :
+
+```bash
+sudo systemctl stop httpd
+```
+
+Vérifier dans Zabbix que le Trigger passe à l'état **PROBLEM**.
+
+Après quelques secondes, confirmer que :
+
+```bash
+systemctl status httpd
+```
+
+retourne :
+
+```text
+active (running)
+```
+
+Vérifier également que le Trigger est revenu à l'état **RESOLVED**.
+
+---
+
+## Ressources
+
+**Script**
+
+```
+linux/apache_restart.sh
+```
+
+**Commandes utilisées**
+
+- `systemctl stop httpd`
+- `systemctl restart httpd`
+- `systemctl status httpd`
+
+**Fonctionnalités Zabbix**
+
+- Trigger
+- Action
+- Zabbix Agent
+
+---
+
+## Résultat
+
+Lorsqu'un arrêt du service Apache est détecté, Zabbix exécute automatiquement le script `apache_restart.sh`, qui redémarre le service `httpd`. Une fois le service rétabli, le Trigger revient automatiquement à l'état **RESOLVED**, assurant ainsi la continuité du service sans intervention de l'administrateur.
+
+## E. # Apache Automatic Diagnosis
+
+## Objectif
+
+Collecter automatiquement les principales informations de diagnostic lorsqu'un dysfonctionnement du serveur Apache est détecté par Zabbix, afin de faciliter l'analyse de la panne avant toute intervention.
+
+---
+
+## Procédure d'implémentation
+
+### 1. Déployer le script
+
+Copier le script sur la machine Linux :
+
+```bash
+sudo cp apache_diagnosis.sh /opt/zabbix/scripts/
+```
+
+
+---
+
+### 2. Configurer les permissions sudo
+
+Modifier le fichier sudoers :
+
+```bash
+sudo visudo
+```
+
+Ajouter les autorisations nécessaires :
+
+```text
+zabbix ALL=(ALL) NOPASSWD: /bin/systemctl
+zabbix ALL=(ALL) NOPASSWD: /usr/bin/journalctl
+zabbix ALL=(ALL) NOPASSWD: /usr/sbin/httpd
+```
+
+Vérifier les chemins des commandes :
+
+```bash
+which systemctl
+which journalctl
+which httpd
+```
+
+---
+
+### 3. Tester le script manuellement
+
+Arrêter le service Apache :
+
+```bash
+sudo systemctl stop httpd
+```
+
+Exécuter le script :
+
+```bash
+sudo /opt/zabbix/scripts/apache_diagnosis.sh
+```
+
+Consulter le rapport généré :
+
+```bash
+cat /tmp/apache_diagnosis.log
+```
+
+---
+
+### 4. Configurer le Trigger
+
+Créer un Trigger détectant l'indisponibilité du serveur Apache (par exemple via le scénario Web ou le contrôle du service).
+
+Lorsque le Trigger passe à l'état **PROBLEM**, le diagnostic est lancé automatiquement.
+
+---
+
+### 5. Configurer l'Action
+
+Depuis l'interface Zabbix :
+
+```
+Alerts
+→ Actions
+→ Trigger actions
+→ Create action
+```
+
+Créer une opération de type **Run script** exécutant :
+
+```bash
+sudo /opt/zabbix/scripts/apache_diagnosis.sh
+```
+
+Associer cette Action au Trigger correspondant.
+
+---
+
+### 6. Validation
+
+Arrêter le service Apache :
+
+```bash
+sudo systemctl stop httpd
+```
+
+Déclencher le Trigger puis vérifier que le fichier de diagnostic a été créé :
+
+```bash
+ls -l /tmp/apache_diagnosis.log
+```
+
+Afficher son contenu :
+
+```bash
+cat /tmp/apache_diagnosis.log
+```
+
+Le rapport doit contenir les informations collectées sur l'état du serveur Apache.
+
+---
+
+## Ressources
+
+**Script**
+
+```
+linux/apache_diagnosis.sh
+```
+
+**Commandes utilisées**
+
+- `systemctl`
+- `journalctl`
+- `httpd -t`
+- `cat`
+
+**Fonctionnalités Zabbix**
+
+- Trigger
+- Action
+- Zabbix Agent
+
+---
+
+## Résultat
+
+Lorsqu'une panne du serveur Apache est détectée, Zabbix exécute automatiquement le script `apache_diagnosis.sh`, qui génère un rapport de diagnostic contenant les principales informations nécessaires à l'analyse de l'incident. Ce rapport peut ensuite être consulté par l'administrateur afin d'identifier rapidement l'origine du dysfonctionnement.
 
 
 
-## 12. NTP Infrastructure
 
-Objectif
 
-Synchroniser l'horloge de l'ensemble des machines de l'infrastructure.
 
-Prérequis
-Chrony installé.
-Connectivité réseau.
-Implémentation
-Configurer le serveur Zabbix comme serveur NTP.
-Configurer les autres machines comme clients NTP.
-Redémarrer le service Chrony.
-Vérifier la synchronisation avec chronyc sources ou timedatectl.
+## F. Windows Service Monitoring
 
-Fichier concerné
-Aucun script n'est nécessaire.
+## Objectif
 
-Résultat
-Toutes les machines utilisent la même référence de temps, garantissant la cohérence des journaux et des événements de supervision.
+Superviser automatiquement les services Windows à l'aide de Zabbix et redémarrer automatiquement un service lorsqu'il est arrêté. Dans ce projet, cette fonctionnalité est appliquée au service **W3SVC (World Wide Web Publishing Service)** du serveur IIS.
 
+---
+
+## Procédure d'implémentation
+
+### 1. Associer le Template Windows
+
+Depuis l'interface Zabbix :
+
+```
+Data collection
+→ Hosts
+→ Windows Server
+→ Templates
+```
+
+Associer le template :
+
+```
+Windows by Zabbix agent
+```
+
+Enregistrer les modifications.
+
+---
+
+### 2. Vérifier la découverte automatique des services
+
+Depuis l'interface Zabbix :
+
+```
+Data collection
+→ Hosts
+→ Windows Server
+→ Discovery
+```
+
+Vérifier que la règle de découverte suivante est activée :
+
+```
+Windows services discovery
+```
+
+Après quelques minutes, le service **W3SVC** est découvert automatiquement.
+
+L'item suivant est créé automatiquement :
+
+```
+service.info["W3SVC",state]
+```
+
+Le Trigger suivant est également créé automatiquement :
+
+```
+Windows: "{#SERVICE.NAME}" is not running
+```
+
+---
+
+### 3. Autoriser l'exécution des commandes distantes
+
+Modifier le fichier :
+
+```text
+C:\Program Files\Zabbix Agent\zabbix_agentd.conf
+```
+
+Ajouter ou décommenter la ligne suivante :
+
+```text
+AllowKey=system.run[*]
+```
+
+Redémarrer ensuite le service Zabbix Agent :
+
+```powershell
+Restart-Service "Zabbix Agent"
+```
+
+---
+
+### 4. Configurer l'Action Zabbix
+
+Depuis l'interface Zabbix :
+
+```
+Alerts
+→ Actions
+→ Trigger actions
+→ Create action
+```
+
+Créer une nouvelle Action associée aux Triggers des services Windows.
+
+Ajouter une opération de type **Run script** exécutant la commande suivante :
+
+```cmd
+sc start "{EVENT.TAGS.service}"
+```
+
+Configurer la condition de l'Action afin d'utiliser le tag :
+
+```
+service
+```
+
+Cette configuration permet de rendre la solution générique et de redémarrer automatiquement tout service Windows supervisé possédant ce tag.
+
+---
+
+### 5. Validation
+
+Arrêter le service IIS :
+
+```cmd
+sc stop W3SVC
+```
+
+Vérifier dans Zabbix que le Trigger passe à l'état **PROBLEM**.
+
+Quelques secondes plus tard, vérifier que le service a été redémarré :
+
+```cmd
+sc query W3SVC
+```
+
+Le résultat attendu est :
+
+```text
+STATE : 4 RUNNING
+```
+
+Le Trigger doit ensuite revenir automatiquement à l'état **RESOLVED**.
+
+---
+
+## Ressources
+
+**Template**
+
+```
+Windows by Zabbix agent
+```
+
+**Règle de découverte**
+
+```
+Windows services discovery
+```
+
+**Item découvert**
+
+```
+service.info["W3SVC",state]
+```
+
+**Trigger découvert**
+
+```
+Windows: "{#SERVICE.NAME}" is not running
+```
+
+**Commande utilisée**
+
+```cmd
+sc start
+```
+
+**Fonctionnalités Zabbix**
+
+- Low-Level Discovery (LLD)
+- Trigger
+- Trigger Action
+- Event Tags
+
+---
+
+## Résultat
+
+Grâce au mécanisme de **Low-Level Discovery**, Zabbix découvre automatiquement les services Windows et crée les éléments de supervision associés. Lorsqu'un service supervisé est arrêté, le Trigger passe à l'état **PROBLEM** et l'Action exécute automatiquement la commande de redémarrage. L'utilisation du tag **service** permet de réutiliser la même Action pour tous les services Windows supervisés, sans configuration spécifique pour chacun.
+
+## G. Windows Automatic Service Restart
+
+## Objectif
+
+Redémarrer automatiquement un service Windows lorsqu'un arrêt est détecté par Zabbix. Cette implémentation repose sur les Trigger générés par la découverte automatique des services Windows et permet de rétablir le service sans intervention de l'administrateur.
+
+---
+
+## Procédure d'implémentation
+
+### 1. Autoriser l'exécution des commandes distantes
+
+Modifier le fichier de configuration du Zabbix Agent :
+
+```text
+C:\Program Files\Zabbix Agent\zabbix_agentd.conf
+```
+
+Ajouter ou décommenter la ligne suivante :
+
+```text
+AllowKey=system.run[*]
+```
+
+Redémarrer ensuite le service Zabbix Agent :
+
+```powershell
+Restart-Service "Zabbix Agent"
+```
+
+---
+
+### 2. Créer une Trigger Action
+
+Depuis l'interface Zabbix :
+
+```
+Alerts
+→ Actions
+→ Trigger actions
+→ Create action
+```
+
+Créer une nouvelle Action associée aux Triggers de supervision des services Windows.
+
+---
+
+### 3. Configurer les conditions
+
+Configurer l'Action pour qu'elle s'exécute uniquement lorsque le Trigger détecte l'arrêt d'un service Windows.
+
+Utiliser le tag :
+
+```text
+service
+```
+
+afin de récupérer automatiquement le nom du service concerné.
+
+---
+
+### 4. Configurer l'opération
+
+Ajouter une opération de type **Run script**.
+
+Commande exécutée :
+
+```cmd
+sc start "{EVENT.TAGS.service}"
+```
+
+Cette commande démarre automatiquement le service dont le nom est transmis par le tag de l'événement.
+
+---
+
+### 5. Validation
+
+Arrêter le service IIS :
+
+```cmd
+sc stop W3SVC
+```
+
+Vérifier dans Zabbix que le Trigger passe à l'état **PROBLEM**.
+
+Quelques secondes plus tard, contrôler que le service est de nouveau actif :
+
+```cmd
+sc query W3SVC
+```
+
+Le résultat attendu est :
+
+```text
+STATE : 4 RUNNING
+```
+
+Le Trigger doit ensuite revenir automatiquement à l'état **RESOLVED**.
+
+---
+
+## Ressources
+
+**Commande utilisée**
+
+```cmd
+sc start
+```
+
+**Fonctionnalités Zabbix**
+
+- Trigger Actions
+- Event Tags
+- Remote Commands
+- Zabbix Agent
+
+---
+
+## Résultat
+
+Lorsqu'un service Windows supervisé est arrêté, Zabbix exécute automatiquement la commande `sc start` afin de redémarrer le service concerné. Grâce à l'utilisation du tag **service**, la même Action peut être réutilisée pour tout service Windows découvert par Zabbix, sans créer d'Action spécifique pour chaque service.
+
+## H. # Centralized Script Synchronization
+
+## Objectif
+
+Centraliser les scripts d'administration Linux sur le serveur Zabbix et faciliter leur déploiement sur les autres machines Linux de l'infrastructure. Le script `rsync_expect.sh` automatise la synchronisation en demandant les informations de connexion des hôtes distants, puis exécute directement le transfert des scripts à l'aide de `rsync`.
+
+---
+
+## Procédure d'implémentation
+
+### 1. Déployer le script
+
+Le script est stocké sur le serveur Zabbix dans le répertoire :
+
+```bash
+/opt/zabbix/scripts/rsync_expect.sh
+```
+
+Configurer les permissions :
+
+```bash
+sudo chown root:zabbix /opt/zabbix/scripts/rsync_expect.sh
+sudo chmod 750 /opt/zabbix/scripts/rsync_expect.sh
+```
+
+---
+
+### 2. Exécuter le script
+
+Lancer le script :
+
+```bash
+sudo /opt/zabbix/scripts/rsync_expect.sh
+```
+
+Le script demande successivement les informations suivantes :
+
+- Adresse IP de la machine distante ;
+- Nom d'utilisateur SSH ;
+- Mot de passe d'utilisateur.
+
+Après validation, le script lance automatiquement la synchronisation des scripts présents dans le répertoire :
+
+```bash
+/opt/scripts/
+```
+
+vers la machine distante.
+
+---
+
+### 3. Vérifier la synchronisation
+
+Après l'exécution du script, vérifier que les fichiers ont bien été copiés.
+
+Sur la machine distante :
+
+```bash
+ls -l /opt/scripts
+```
+
+Comparer ensuite le contenu avec celui du serveur :
+
+```bash
+ls -l /opt/scripts
+```
+
+Les deux répertoires doivent contenir les mêmes scripts.
+
+---
+
+### 4. Validation
+
+Modifier un script sur le serveur Zabbix.
+
+Par exemple :
+
+```bash
+echo "# Test synchronization" >> /opt/zabbix/scripts/test.sh
+```
+
+Relancer le script :
+
+```bash
+sudo /opt/zabbix/scripts/rsync_expect.sh
+```
+
+Puis vérifier sur la machine distante :
+
+```bash
+cat /opt/zabbix/scripts/test.sh
+```
+
+La modification doit être présente, confirmant le bon fonctionnement de la synchronisation.
+
+---
+
+## Ressources
+
+**Script**
+
+```
+linux/rsync_expect.sh
+```
+
+**Commandes utilisées**
+
+- `rsync`
+- `ssh`
+- `expect`
+
+---
+
+## Résultat
+
+Le script `rsync_expect.sh` automatise la synchronisation des scripts d'administration entre le serveur Zabbix et une machine Linux distante. Après avoir renseigné les paramètres de connexion, les scripts présents dans `/opt/zabbix/scripts` sont transférés automatiquement vers la machine cible, garantissant ainsi que les deux systèmes disposent de la même version des scripts.
 
 
 # Technologies utilisées
