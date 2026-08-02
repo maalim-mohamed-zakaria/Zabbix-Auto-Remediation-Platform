@@ -1181,12 +1181,6 @@ Le script est stocké sur le serveur Zabbix dans le répertoire :
 /opt/zabbix/scripts/rsync_expect.sh
 ```
 
-Configurer les permissions :
-
-```bash
-sudo chown root:zabbix /opt/zabbix/scripts/rsync_expect.sh
-sudo chmod 750 /opt/zabbix/scripts/rsync_expect.sh
-```
 
 ---
 
