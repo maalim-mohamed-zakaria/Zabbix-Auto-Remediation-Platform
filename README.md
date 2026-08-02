@@ -94,7 +94,7 @@ AllowKey=system.run[*]
 Puis redémarrer l'agent :
 
 ```powershell
-Restart-Service Zabbix Agent
+sudo systemctl start Zabbix Agent
 ```
 
 ---
