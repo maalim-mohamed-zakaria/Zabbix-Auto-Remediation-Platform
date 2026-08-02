@@ -396,7 +396,7 @@ linux/increase_var.sh
 
 Lorsque l'espace disponible sur la partition `/var` devient inférieur au seuil défini, Zabbix exécute automatiquement le script `increase_var.sh`. Celui-ci étend le volume logique de **2 Mo**, redimensionne le système de fichiers, puis le Trigger revient automatiquement à l'état **RESOLVED** sans intervention de l'administrateur.
 
-## C- Automatic Audit Cleanup
+## C-Automatic Audit Cleanup
 
 ## Objectif
 
@@ -544,7 +544,7 @@ linux/clean_audit.sh
 
 ---
 
-## D. # Apache Auto Restart
+## D-Apache Auto Restart
 
 ## Objectif
 
@@ -701,7 +701,7 @@ linux/apache_restart.sh
 
 Lorsqu'un arrêt du service Apache est détecté, Zabbix exécute automatiquement le script `apache_restart.sh`, qui redémarre le service `httpd`. Une fois le service rétabli, le Trigger revient automatiquement à l'état **RESOLVED**, assurant ainsi la continuité du service sans intervention de l'administrateur.
 
-## E. # Apache Automatic Diagnosis
+## E-Apache Automatic Diagnosis
 
 ## Objectif
 
@@ -855,7 +855,7 @@ Lorsqu'une panne du serveur Apache est détectée, Zabbix exécute automatiqueme
 
 
 
-## F. Windows Service Monitoring
+## F-Windows Service Monitoring
 
 ## Objectif
 
@@ -1041,7 +1041,7 @@ sc start
 
 Grâce au mécanisme de **Low-Level Discovery**, Zabbix découvre automatiquement les services Windows et crée les éléments de supervision associés. Lorsqu'un service supervisé est arrêté, le Trigger passe à l'état **PROBLEM** et l'Action exécute automatiquement la commande de redémarrage. L'utilisation du tag **service** permet de réutiliser la même Action pour tous les services Windows supervisés, sans configuration spécifique pour chacun.
 
-## G. Windows Automatic Service Restart
+## G-Windows Automatic Service Restart
 
 ## Objectif
 
