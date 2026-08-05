@@ -1118,7 +1118,7 @@ Cette commande démarre automatiquement le service dont le nom est transmis par 
 
 ### 5. Validation
 
-Arrêter le service IIS :
+Arrêter le service IIS ( ou un autre service pour le test):
 
 ```cmd
 sc stop W3SVC
@@ -1172,10 +1172,12 @@ Centraliser les scripts d'administration Linux sur le serveur Zabbix et facilite
 ---
 
 ## Procédure d'implémentation
+## Prérequis
+ le rsync doit être installé sur toutes les machines concérnées par la synchronisation
 
 ### 1. Déployer le script
 
-Le script est stocké sur le serveur Zabbix dans le répertoire :
+Le fichier du script est créé sur le serveur Zabbix dans le répertoire puis y copier le contenu de linux/rsync_expect:
 
 ```bash
 /opt/zabbix/scripts/rsync_expect.sh
@@ -1195,7 +1197,7 @@ sudo /opt/zabbix/scripts/rsync_expect.sh
 Le script demande successivement les informations suivantes :
 
 - Adresse IP de la machine distante ;
-- Nom d'utilisateur SSH ;
+- Nom d'utilisateur ;
 - Mot de passe d'utilisateur.
 
 Après validation, le script lance automatiquement la synchronisation des scripts présents dans le répertoire :
@@ -1290,9 +1292,7 @@ Le script `rsync_expect.sh` automatise la synchronisation des scripts d'administ
 - Bash
 - Batch
 - PowerShell
-- SSH
 - rsync
-- cron
 - Chrony
 - VirtualBox
 
