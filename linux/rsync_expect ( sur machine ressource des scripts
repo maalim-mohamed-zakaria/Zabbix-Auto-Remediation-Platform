@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+
+puts "=======sync======="
+
+send_user "Target host: "
+expect_user -re "(.*)\n"
+set HOST $expect_out(1,string)
+
+send_user "Username: "
+expect_user -re "(.*)\n"
+set USER $expect_out(1,string)
+
+stty -echo
+send_user "Password: "
+expect_user -re "(.*)\n"
+set PASS $expect_out(1,string)
+stty echo
+
+send_user "\n"
+
+puts "Synchronizing scripts to $HOST..."
+
+spawn rsync -avz /opt/scripts/ ${USER}@${HOST}:/opt/scripts/
+
+expect {
+    "*assword:*" {
+        send "$PASS\r"
+    }
+}
+
+expect eof
