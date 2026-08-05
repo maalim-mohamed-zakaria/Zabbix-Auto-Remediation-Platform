@@ -36,7 +36,6 @@ Les automatisations ont été développées et validées sur l'environnement sui
 | PostgreSQL | 16 |
 | Apache HTTP Server | 2.4 |
 | IIS | Internet Information Services |
-| Chrony | NTP |
 | rsync | Synchronisation des scripts |
 
 ---
