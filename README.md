@@ -924,60 +924,6 @@ Restart-Service "Zabbix Agent"
 
 ---
 
-### 4. Configurer l'Action Zabbix
-
-Depuis l'interface Zabbix :
-
-```
-Alerts
-→ Actions
-→ Trigger actions
-→ Create action
-```
-
-Créer une nouvelle Action associée aux Triggers des services Windows.
-
-Ajouter une opération de type **Run script** exécutant la commande suivante :
-
-```cmd
-sc start "{EVENT.TAGS.service}"
-```
-
-Configurer la condition de l'Action afin d'utiliser le tag :
-
-```
-service
-```
-
-Cette configuration permet de rendre la solution générique et de redémarrer automatiquement tout service Windows supervisé possédant ce tag.
-
----
-
-### 5. Validation
-
-Arrêter le service IIS :
-
-```cmd
-sc stop W3SVC
-```
-
-Vérifier dans Zabbix que le Trigger passe à l'état **PROBLEM**.
-
-Quelques secondes plus tard, vérifier que le service a été redémarré :
-
-```cmd
-sc query W3SVC
-```
-
-Le résultat attendu est :
-
-```text
-STATE : 4 RUNNING
-```
-
-Le Trigger doit ensuite revenir automatiquement à l'état **RESOLVED**.
-
----
 
 ## Ressources
 
@@ -999,23 +945,10 @@ Windows services discovery
 service.info["W3SVC",state]
 ```
 
-**Trigger découvert**
-
-```
-Windows: "{#SERVICE.NAME}" is not running
-```
-
-**Commande utilisée**
-
-```cmd
-sc start
-```
 
 **Fonctionnalités Zabbix**
 
 - Low-Level Discovery (LLD)
-- Trigger
-- Trigger Action
 - Event Tags
 
 ---
