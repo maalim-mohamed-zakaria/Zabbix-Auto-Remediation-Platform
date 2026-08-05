@@ -17,8 +17,6 @@ Les solutions implémentées couvrent notamment :
 - Redémarrage automatique du serveur Apache ;
 - Déploiement et supervision du serveur IIS sous Windows ;
 - Remédiation automatique des services Windows ;
-- Déploiement d'un Zabbix Proxy ;
-- Mise en place d'une architecture NTP ;
 - Synchronisation centralisée des scripts Linux.
 
 ---
