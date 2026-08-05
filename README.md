@@ -316,23 +316,10 @@ Vérifier la nouvelle taille du système de fichiers :
 df -h /var
 ```
 
----
-
-### 4. Configurer le Trigger
-
-Depuis l'interface Zabbix, créer un Trigger surveillant l'espace disponible sur `/var`.
-
-Exemple d'expression :
-
-```text
-last(/Rocky-cis2/vfs.fs.size[/var,pfree])<15
-```
-
-Le Trigger passe à l'état **PROBLEM** lorsque l'espace libre devient inférieur à **15 %**.
 
 ---
 
-### 5. Configurer l'Action
+### 4. Configurer l'Action
 
 Depuis l'interface Zabbix :
 
@@ -342,6 +329,9 @@ Alerts
 → Trigger actions
 → Create action
 ```
+Mettre en condition le trigger du template :
+
+**Linux: FS [/var]: Space is critically low** 
 
 Configurer une opération de type **Run script** exécutant :
 
@@ -353,7 +343,7 @@ Associer cette Action au Trigger créé précédemment.
 
 ---
 
-### 6. Validation
+### 5. Validation
 
 Remplir temporairement la partition `/var` ou diminuer le seuil du Trigger afin de provoquer son déclenchement.
 
@@ -470,16 +460,9 @@ ls -l /var/log/audit
 Seul le fichier **audit.log** doit être conservé.
 
 ---
-
-### 4. Configurer le Trigger
-
-Créer un Trigger surveillant l'espace disponible sur la partition contenant le répertoire `/var/log/audit`.
-
-Lorsque le seuil défini est atteint, le Trigger passe à l'état **PROBLEM**.
-
 ---
 
-### 5. Configurer l'Action
+### 4. Configurer l'Action
 
 Depuis l'interface Zabbix :
 
@@ -489,7 +472,10 @@ Alerts
 → Trigger actions
 → Create action
 ```
+Mettre en conditions le trigger du template :
 
+**Linux: FS [/var/log/audit]: Space is critically low**
+ 
 Créer une opération de type **Run script** exécutant :
 
 ```bash
@@ -500,7 +486,7 @@ Associer cette Action au Trigger créé précédemment.
 
 ---
 
-### 6. Validation
+### 5. Validation
 
 Déclencher le Trigger en simulant un manque d'espace disque ou en abaissant temporairement son seuil.
 
